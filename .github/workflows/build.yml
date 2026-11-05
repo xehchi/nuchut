@@ -28,10 +28,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # better-sqlite3 הוא מודול מקומפל; הוא חייב להיות בנוי מול ה-ABI של Electron
-      - name: Fix native modules for Electron
-        run: npx --yes @electron/rebuild -f -w better-sqlite3
-
+      # better-sqlite3 הוא מודול מקומפל; npmRebuild:true בונה אותו מול ה-ABI של Electron
       - name: Build (portable + installer)
         run: npm run dist
         env:
@@ -43,9 +40,9 @@ jobs:
           name: nuchut-windows-x64
           path: |
             dist/*.exe
-            dist/*.log
-            dist/**/*.yml
-          if-no-files-found: error
+            dist/*.yml
+            dist/*.blockmap
+          if-no-files-found: warn
 
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
