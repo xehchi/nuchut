@@ -33,6 +33,29 @@ jobs:
         run: npm run dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          DEBUG: electron-builder,app-builder
+
+      # מצב האבחון היחיד: פריסת הקבצים שהצלחנו לארוז, כדי לראות איפה האריזה נשברת
+      - name: Diagnose on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          Write-Output "=== node/npm ==="
+          node -v; npm -v
+          Write-Output "=== disk ==="
+          Get-PSDrive C | Select-Object Used,Free
+          Write-Output "=== dist ==="
+          if (Test-Path dist) {
+            Get-ChildItem dist -Recurse -File | Measure-Object -Sum Length | Select-Object Count,Sum
+            Get-ChildItem dist -Filter *.yml | ForEach-Object { Write-Output "--- $($_.Name) ---"; Get-Content $_.FullName -TotalCount 40 }
+            if (Test-Path dist/win-unpacked) {
+              Get-ChildItem dist/win-unpacked -Recurse -File | Measure-Object -Sum Length | Select-Object Count,Sum
+              Get-ChildItem dist/win-unpacked/resources/app/node_modules -ErrorAction SilentlyContinue | Select-Object -First 40 Name
+              Test-Path dist/win-unpacked/resources/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node
+            }
+          } else { Write-Output "no dist dir" }
+          Write-Output "=== temp ==="
+          Get-PSDrive C | Select-Object Free
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
