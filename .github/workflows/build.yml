@@ -64,6 +64,7 @@ jobs:
             dist/*.yml
             dist/*.yaml
             dist/*.blockmap
+            dist/*.log
           if-no-files-found: warn
 
       - name: Fail if build failed

@@ -21,20 +21,50 @@ for (const name of ['execFile', 'spawn']) {
   };
 }
 
+// הלוג של electron-builder עובר דרך consola → אינו stdout של התהליך. אוסף כל מה שנכתב
+// לקונסולה של התהליך הזה ורושם אותו לקובץ שאפשר להעלות כארטיפקט.
+const fs = require('fs');
+const path = require('path');
+const out = path.join(__dirname, '..', 'dist', 'ci-debug.log');
+fs.mkdirSync(path.dirname(out), { recursive: true });
+const write = (stream) => {
+  const orig = stream.write.bind(stream);
+  stream.write = (chunk, ...rest) => {
+    try { fs.appendFileSync(out, chunk); } catch {}
+    return orig(chunk, ...rest);
+  };
+};
+write(process.stdout);
+write(process.stderr);
+// err-short.log — מה שהופך את הכשל לאבחון מהיר (לא נוגעים בו ב-gitignore)
+const shortLog = path.join(__dirname, '..', 'dist', 'err-short.log');
+const clipShort = (s) => String(s).replace(/\x1b\[\d+m/g, '').slice(0, 1500);
+
 // לשמור exit code של electron-builder כמו שהוא, בלי לעטוף בקוד אחר
 process.on('unhandledRejection', (e) => {
-  console.log('[ci-debug] unhandledRejection:', clip(e && (e.stack || e)));
+  const msg = '[ci-debug] unhandledRejection: ' + clipShort(e && (e.stack || e));
+  console.log(msg);
+  try { fs.writeFileSync(shortLog, msg); } catch {}
   process.exit(1);
 });
 
 const builder = require('electron-builder');
 builder
-  .build({ targets: builder.Platform.WINDOWS.createTarget(['portable', 'nsis'], 'x64') })
+  .build({ targets: builder.Platform.WINDOWS.createTarget(['portable', 'nsis'], builder.Arch.x64) })
   .then((files) => {
     console.log('[ci-debug] done:', files.join(', '));
     process.exit(0);
   })
   .catch((e) => {
-    console.log('[ci-debug] FAILED:', clip(e && (e.stack || e)));
+    const msg = '[ci-debug] FAILED: ' + clipShort(e && (e.stack || e));
+    console.log(msg);
+    try { fs.writeFileSync(shortLog, msg + '\n\n--- tail of builder log ---\n' + tailOf(out, 8000)); } catch {}
     process.exit(1);
   });
+
+function tailOf(file, n) {
+  try {
+    const s = fs.readFileSync(file, 'utf8').replace(/\x1b\[\d+m/g, '');
+    return s.slice(-n);
+  } catch { return '(no log)'; }
+}
