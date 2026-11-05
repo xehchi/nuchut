@@ -2,6 +2,10 @@
 
 מערכת שולחנית לניהול נוכחות וקבוצות לסמינרים — סמינר ← קבוצה ← תלמידה.
 
+## הורדה
+
+קובץ הרצה נייד ומתקין לבנייה האחרונה נמצאים ב-**Actions → Build → הארטיפקט `nuchut-windows-x64`**, או ב-**Releases** כשקיים תג גרסה. אין צורך בהתקנה כשמשתמשים בקובץ הנייד — מסד הנתונים נשמר בתיקיית `data/` לצדו.
+
 ## מבנה
 
 ```
@@ -27,20 +31,20 @@ npm install
 npm start
 ```
 
-## בנייה לאריזה
+## בנייה
 
 ```bash
 npm run dist
 ```
 
-נוצרים ב-`dist/` קובץ נייד (portable) ומתקין NSIS. מסד הנתונים נשמר בתיקיית `data/` לצד קובץ ההרצה.
+נוצרים ב-`dist/` קובץ נייד (portable) ומתקין NSIS. הבנייה רצה גם אוטומטית ב-GitHub Actions על כל דחיפה ל-`main`, ויוצרת Release כאשר נדחף תג בפורמט `v1.0.0`.
 
 ## בדיקות
 
 ```bash
 node test-db.js                                  # שכבת הנתונים
 node tools/test-status.js                        # חישוב "השיעור כעת"
-npx electron smoke-env.js --disable-gpu          # בדיקת עשן מלאה (SMOKE_RESULT בפלט)
+npx electron smoke-env.js --disable-gpu          # בדיקת עשן מלאה (SMOKE_RESULT בפלט, 28 מסכים)
 ```
 
 ## אבטחה
