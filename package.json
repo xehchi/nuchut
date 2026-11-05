@@ -9,7 +9,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win portable nsis"
+    "dist": "electron-builder --win portable nsis",
+    "test": "node test-db.js && node tools/test-status.js"
   },
   "build": {
     "appId": "com.sai.nuchut",

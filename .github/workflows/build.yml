@@ -26,9 +26,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: |
-          node test-db.js
-          node tools/test-status.js
+        run: npm test
 
       - name: Build (portable + installer)
         run: npm run dist
