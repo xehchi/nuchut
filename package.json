@@ -16,7 +16,7 @@
     "appId": "com.sai.nuchut",
     "productName": "נוכחות",
     "asar": false,
-    "npmRebuild": "true",
+    "npmRebuild": false,
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
     "icon": "build/icon.ico",

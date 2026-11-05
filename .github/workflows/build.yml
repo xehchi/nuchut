@@ -28,12 +28,12 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # better-sqlite3 הוא מודול מקומפל; npmRebuild:true בונה אותו מול ה-ABI של Electron.
+      # better-sqlite3 מגיע מקבצי prebuilt (npmRebuild:false), ולכן אין קומפילציה בזמן אריזה.
       # continue-on-error כדי שצילום המצב והעלאת הארטיפקטים ירוצו גם כשהאריזה נשברת.
       - name: Build (portable + installer)
         id: build
         continue-on-error: true
-        run: npm run dist
+        run: node tools/ci-debug.js
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           DEBUG: electron-builder,app-builder
