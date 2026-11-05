@@ -43,6 +43,8 @@ jobs:
           name: nuchut-windows-x64
           path: |
             dist/*.exe
+            dist/*.log
+            dist/**/*.yml
           if-no-files-found: error
 
       - name: Create release
