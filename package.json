@@ -6,6 +6,7 @@
   "main": "main.js",
   "author": "SAI",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win portable nsis"
