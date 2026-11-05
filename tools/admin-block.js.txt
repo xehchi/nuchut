@@ -1,0 +1,134 @@
+async function renderAdmin(view) {
+  const [seminars, books] = await Promise.all([call(window.api.seminars.list()), call(window.api.books.list())]);
+  await loadGroups();
+  renderStatus();
+
+  const totalStudents = state.groups.reduce((n, g) => n + (g.student_count || 0), 0);
+
+  const groupRow = (g) => `
+    <li class="glist-item">
+      <div class="glist-main" data-open-group="${g.id}">
+        <div class="avatar sm">${esc(g.name.slice(0, 2)) || 'ק'}</div>
+        <div class="glist-text">
+          <b>${esc(g.name)}</b>
+          <div class="faint small">${[g.grade, g.track, g.teacher].filter(Boolean).map(esc).join(' · ') || 'ללא פרטים נוספים'}</div>
+        </div>
+        <span class="glist-count">${ico('users')} ${g.student_count}</span>
+      </div>
+      <div class="glist-actions">
+        <button class="btn sm ghost" data-open-group="${g.id}" title="פתיחת הקבוצה">${ico('arrow-left')}</button>
+        <button class="btn sm ghost" data-eval="${g.id}" data-kind="group" title="עריכה">${ico('pencil')}</button>
+        <button class="btn sm ghost danger-ghost" data-rdel="${g.id}" data-kind="group" title="מחיקה">${ico('trash-2')}</button>
+      </div>
+    </li>`;
+
+  const seminarCard = (s) => {
+    const own = state.groups.filter((g) => g.seminar_id === s.id);
+    return `
+    <section class="card seminar-card">
+      <div class="card-head seminar-head">
+        <div class="sem-ico">${ico('school')}</div>
+        <div>
+          <h2>${esc(s.name)}</h2>
+          <div class="faint small">${esc(s.coordinator || 'ללא מרכזת')}${s.coordinator_phone ? ' · ' + esc(s.coordinator_phone) : ''} · ${own.length} קבוצות</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn sm" data-add-group="${s.id}">${ico('plus')} קבוצה</button>
+        <button class="btn sm ghost" data-eval="${s.id}" data-kind="seminar" title="עריכת סמינר">${ico('pencil')}</button>
+        <button class="btn sm ghost danger-ghost" data-rdel="${s.id}" data-kind="seminar" title="מחיקת סמינר">${ico('trash-2')}</button>
+      </div>
+      ${own.length ? `<ul class="glist">${own.map(groupRow).join('')}</ul>` : `<div class="empty small-empty">${ico('users')} אין קבוצות בסמינר הזה עדיין</div>`}
+    </section>`;
+  };
+
+  view.innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">ניהול</h1>
+        <div class="page-sub">${seminars.length} סמינרים · ${state.groups.length} קבוצות · ${totalStudents} תלמידות</div>
+      </div>
+      <div class="row">
+        <button class="btn" data-new="seminar">${ico('school')} סמינר חדש</button>
+        <button class="btn primary" data-new="group">${ico('plus')} קבוצה חדשה</button>
+      </div>
+    </div>
+
+    <div class="admin-layout">
+      <div class="admin-col">
+        <h2 class="section-title">${ico('layers')} סמינרים וקבוצות</h2>
+        ${seminars.length ? seminars.map(seminarCard).join('')
+          : emptyState('school', 'אין סמינרים עדיין', 'סמינר הוא המסגרת העליונה; בתוכו יוצרים קבוצות ובתוכן תלמידות.',
+            `<button class="btn primary" data-new="seminar">${ico('plus')} יצירת סמינר ראשון</button>`)}
+      </div>
+
+      <div class="admin-col">
+        <h2 class="section-title">${ico('book-open')} ספרים</h2>
+        <section class="card card-pad">
+          <div class="row" style="justify-content:flex-end;margin-bottom:10px">
+            <button class="btn sm" data-new="book">${ico('plus')} ספר</button>
+          </div>
+          ${books.length ? `<ul class="glist">${books.map((b) => `
+            <li class="glist-item">
+              <div class="glist-main">
+                <div class="avatar sm book">${ico('book-open')}</div>
+                <div class="glist-text"><b>${esc(b.title)}</b>
+                  <div class="faint small">${[b.author, b.price ? Number(b.price).toFixed(0) + ' ₪' : ''].filter(Boolean).map(esc).join(' · ') || 'ללא מחבר/מחיר'}</div>
+                </div>
+              </div>
+              <div class="glist-actions">
+                <button class="btn sm ghost" data-eval="${b.id}" data-kind="book" title="עריכה">${ico('pencil')}</button>
+                <button class="btn sm ghost danger-ghost" data-rdel="${b.id}" data-kind="book" title="מחיקה">${ico('trash-2')}</button>
+              </div>
+            </li>`).join('')}</ul>` : `<div class="empty small-empty">${ico('book-open')} אין ספרים עדיין</div>`}
+        </section>
+
+        <h2 class="section-title">${ico('shield-check')} מערכת ואבטחה</h2>
+        <section class="card card-pad admin-actions">
+          <button class="admin-action" id="backup"><span class="aa-ico">${ico('database')}</span>
+            <span class="aa-text"><b>גיבוי לקובץ</b><span class="small muted">שמירת עותק של כל הנתונים</span></span>${ico('chevron-left', 'aa-arrow')}</button>
+          <button class="admin-action" id="open-data"><span class="aa-ico">${ico('folder-open')}</span>
+            <span class="aa-text"><b>תיקיית הנתונים</b><span class="small muted">פתיחת התיקייה שבה נשמרים הקבצים</span></span>${ico('chevron-left', 'aa-arrow')}</button>
+          <button class="admin-action" id="security"><span class="aa-ico">${ico('lock')}</span>
+            <span class="aa-text"><b>שינוי סיסמה</b><span class="small muted">סיסמה ושאלת אבטחה</span></span>${ico('chevron-left', 'aa-arrow')}</button>
+          <button class="admin-action" id="logout"><span class="aa-ico">${ico('log-out')}</span>
+            <span class="aa-text"><b>התנתקות</b><span class="small muted">נעילת המערכת עד להזנת הסיסמה</span></span>${ico('chevron-left', 'aa-arrow')}</button>
+        </section>
+      </div>
+    </div>`;
+
+  $$('[data-add-group]').forEach((b) => {
+    b.onclick = () => {
+      const id = Number(b.dataset.addGroup);
+      openEntityEdit('group', { seminar_id: id }, seminars, books);
+    };
+  });
+  $$('[data-new]').forEach((b) => { b.onclick = () => openEntityEdit(b.dataset.new, null, seminars, books); });
+  $$('[data-open-group]').forEach((b) => { b.onclick = () => navigate('group', { groupId: Number(b.dataset.openGroup) }); });
+  $$('[data-eval]').forEach((b) => {
+    const kind = b.dataset.kind, id = Number(b.dataset.eval);
+    const item = kind === 'seminar' ? seminars.find((x) => x.id === id)
+      : kind === 'book' ? books.find((x) => x.id === id)
+      : state.groups.find((x) => x.id === id);
+    b.onclick = (e) => { e.stopPropagation(); openEntityEdit(kind, item, seminars, books); };
+  });
+  $$('[data-rdel]').forEach((b) => {
+    b.onclick = async (e) => {
+      e.stopPropagation();
+      const kind = b.dataset.kind, id = Number(b.dataset.rdel);
+      const msg = kind === 'group' ? 'מחיקת קבוצה תמחק את כל התלמידות, השיעורים והנוכחות שלה. להמשיך?'
+        : kind === 'seminar' ? 'מחיקת סמינר תמחק את כל הקבוצות שבו. להמשיך?' : 'למחוק את הספר?';
+      if (!(await confirmDialog(msg))) return;
+      try {
+        const api = kind === 'seminar' ? window.api.seminars : kind === 'book' ? window.api.books : window.api.groups;
+        await call(api.remove(id));
+        toast('נמחק');
+        render();
+      } catch (err) { fail(err); }
+    };
+  });
+  $('#backup').onclick = () => doBackup();
+  $('#open-data').onclick = () => openDataDir();
+  $('#security').onclick = () => openSecurity();
+  $('#logout').onclick = () => logout();
+}
+

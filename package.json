@@ -1,0 +1,70 @@
+{
+  "name": "nuchut",
+  "productName": "נוכחות",
+  "version": "1.0.0",
+  "description": "מערכת ניהול נוכחות וקבוצות לסמינרים",
+  "main": "main.js",
+  "author": "SAI",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable nsis"
+  },
+  "build": {
+    "appId": "com.sai.nuchut",
+    "productName": "נוכחות",
+    "asar": false,
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "icon": "build/icon.ico",
+    "files": [
+      "main.js",
+      "preload.js",
+      "db.js",
+      "renderer/**/*",
+      "build/icon.ico"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "נוכחות-נייד-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "נוכחות-מתקין-${version}.exe",
+      "installerLanguages": [
+        "he_IL"
+      ],
+      "language": "1037"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "lucide-static": "^1.66.0",
+    "xlsx": "^0.18.5"
+  }
+}

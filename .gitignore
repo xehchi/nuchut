@@ -1,0 +1,31 @@
+# תלויות
+node_modules/
+
+# תוצרי בנייה
+dist/
+release/
+build/*.blockmap
+
+# נתוני משתמש — לא לגיט!
+data/
+*.sqlite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# קבצי אקסל ותמונות של עובדים
+*.xlsx
+~$*.xlsx
+*.jpg
+*.png
+!build/icon.png
+
+# בדיקות עשן
+smoke-shots/
+smoke.log
+
+# מערכת
+.DS_Store
+Thumbs.db
+desktop.ini
