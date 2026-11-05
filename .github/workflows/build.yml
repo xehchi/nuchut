@@ -28,6 +28,10 @@ jobs:
       - name: Run tests
         run: npm test
 
+      # better-sqlite3 הוא מודול מקומפל; הוא חייב להיות בנוי מול ה-ABI של Electron
+      - name: Fix native modules for Electron
+        run: npx --yes @electron/rebuild -f -w better-sqlite3
+
       - name: Build (portable + installer)
         run: npm run dist
         env:
